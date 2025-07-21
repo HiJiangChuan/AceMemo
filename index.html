@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扑克牌记忆训练</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .card {
+            display: inline-block;
+            width: 60px;
+            height: 80px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            margin: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background: white;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+            max-width: 100%;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+
+        .memory-slot {
+            width: 60px;
+            height: 80px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background: #f9f9f9;
+        }
+
+        .memory-slot.filled {
+            border-style: solid;
+            background: white;
+        }
+
+        .memory-slot.correct {
+            border-color: #4CAF50;
+            background: #E8F5E8;
+        }
+
+        .memory-slot.incorrect {
+            border-color: #f44336;
+            background: #FFEBEE;
+        }
+
+        .card-pool {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .progress {
+            margin: 20px 0;
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .score {
+            font-size: 1.5em;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0f8ff;
+        }
+
+        .score.correct {
+            background: #E8F5E8;
+            color: #2E7D32;
+        }
+
+        .score.incorrect {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+
+
+        .difficulty-btn {
+            background: #e9ecef;
+            color: #495057;
+            border: 2px solid #dee2e6;
+        }
+
+        .difficulty-btn:hover {
+            background: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.selected {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .difficulty-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 初始页 -->
+        <div id="start-page">
+            <h1>🎯 扑克牌记忆训练</h1>
+            <p style="margin: 20px 0; font-size: 1.1em; color: #666;">
+                训练你的记忆力！记住扑克牌的顺序，然后进行回忆测试。
+            </p>
+            
+            <div style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                <h3 style="margin-bottom: 15px; color: #333;">选择训练难度：</h3>
+                <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn difficulty-btn" onclick="setDifficulty(10)" data-cards="10">10张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(20)" data-cards="20">20张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(30)" data-cards="30">30张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(52)" data-cards="52">52张牌</button>
+                </div>
+                <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                    当前选择：<span id="selected-cards">请选择牌数</span>
+                </div>
+            </div>
+            
+            <button class="btn" id="start-btn" onclick="startTraining()" disabled>开始记忆训练</button>
+        </div>
+
+        <!-- 记忆页 -->
+        <div id="memory-page" class="hidden">
+            <h1>📚 记忆阶段</h1>
+            <div class="progress">
+                <span id="memory-progress">正在生成扑克牌...</span>
+            </div>
+            
+
+
+            <div id="cards-display"></div>
+            
+            <div class="controls">
+                <button class="btn" onclick="startRecall()">开始回忆</button>
+                <button class="btn" onclick="backToStart()">返回首页</button>
+            </div>
+        </div>
+
+        <!-- 回忆页 -->
+        <div id="recall-page" class="hidden">
+            <h1>🧠 回忆阶段</h1>
+            <div class="progress">
+                <span id="recall-progress">请按顺序点击扑克牌填入空格</span>
+            </div>
+
+            <div id="memory-grid" class="memory-grid"></div>
+            
+            <div class="card-pool">
+                <h3>可选择的牌：</h3>
+                <div id="card-pool" class="card-grid"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="submitAnswer()">提交答案</button>
+                <button class="btn" onclick="resetRecall()">重新开始</button>
+                <button class="btn" onclick="backToStart()">返回首页</button>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="result-page" class="hidden">
+            <h1>📊 训练结果</h1>
+            <div id="score-display" class="score"></div>
+            <div id="result-details"></div>
+            <button class="btn" onclick="backToStart()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let gameState = {
+            cards: [],
+            shuffledCards: [],
+            currentDisplayMode: 'group',
+            currentGroupIndex: 0,
+            selectedSlot: 0,
+            userAnswers: [],
+            isSubmitted: false,
+            selectedCardCount: 0
+        };
+
+        // 扑克牌数据
+        const suits = ['♠', '♥', '♦', '♣'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+        // 设置难度（选择牌数）
+        function setDifficulty(cardCount) {
+            gameState.selectedCardCount = cardCount;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            // 更新显示
+            document.getElementById('selected-cards').textContent = `${cardCount}张牌`;
+            
+            // 启用开始按钮
+            document.getElementById('start-btn').disabled = false;
+        }
+
+        // 初始化扑克牌
+        function initializeCards() {
+            gameState.cards = [];
+            for (let suit of suits) {
+                for (let value of values) {
+                    gameState.cards.push({ suit, value });
+                }
+            }
+        }
+
+        // Fisher-Yates 洗牌算法
+        function shuffleCards() {
+            // 从所有牌中随机选择指定数量的牌
+            const allCards = [...gameState.cards];
+            gameState.shuffledCards = [];
+            
+            for (let i = 0; i < gameState.selectedCardCount; i++) {
+                const randomIndex = Math.floor(Math.random() * allCards.length);
+                gameState.shuffledCards.push(allCards[randomIndex]);
+                allCards.splice(randomIndex, 1);
+            }
+        }
+
+        // 开始训练
+        function startTraining() {
+            initializeCards();
+            shuffleCards();
+            gameState.currentGroupIndex = 0;
+            
+            document.getElementById('start-page').classList.add('hidden');
+            document.getElementById('memory-page').classList.remove('hidden');
+            
+            displayCards();
+        }
+
+
+
+        // 显示扑克牌
+        function displayCards() {
+            const display = document.getElementById('cards-display');
+            display.innerHTML = '';
+
+            const cardsPerGroup = 4;
+            const totalGroups = Math.ceil(gameState.selectedCardCount / cardsPerGroup);
+            const startIndex = gameState.currentGroupIndex * cardsPerGroup;
+            const endIndex = Math.min(startIndex + cardsPerGroup, gameState.selectedCardCount);
+
+            // 创建卡片容器，设置为横向排列
+            const cardsContainer = document.createElement('div');
+            cardsContainer.style.display = 'flex';
+            cardsContainer.style.justifyContent = 'center';
+            cardsContainer.style.gap = '10px';
+            cardsContainer.style.marginBottom = '20px';
+            cardsContainer.style.minHeight = '100px'; // 确保容器高度一致
+            display.appendChild(cardsContainer);
+
+            // 显示当前组的牌
+            for (let i = startIndex; i < endIndex; i++) {
+                const card = gameState.shuffledCards[i];
+                const cardElement = createCardElement(card, i);
+                cardsContainer.appendChild(cardElement);
+            }
+
+            // 更新进度信息
+            document.getElementById('memory-progress').textContent = 
+                `第 ${gameState.currentGroupIndex + 1} 组，共 ${totalGroups} 组 (第 ${startIndex + 1}-${endIndex} 张牌)`;
+
+            // 创建固定的导航按钮容器
+            const navContainer = document.createElement('div');
+            navContainer.style.display = 'flex';
+            navContainer.style.justifyContent = 'center';
+            navContainer.style.gap = '10px';
+            navContainer.style.marginTop = '20px';
+            navContainer.style.position = 'relative';
+            display.appendChild(navContainer);
+
+            // 添加上一组按钮（始终显示，不可用时禁用）
+            const prevButton = document.createElement('button');
+            prevButton.className = 'btn';
+            prevButton.textContent = '上一组';
+            prevButton.onclick = prevGroup;
+            if (gameState.currentGroupIndex <= 0) {
+                prevButton.disabled = true;
+                prevButton.style.opacity = '0.5';
+                prevButton.style.cursor = 'not-allowed';
+            }
+            navContainer.appendChild(prevButton);
+
+            // 添加下一组按钮（始终显示，不可用时禁用）
+            const nextButton = document.createElement('button');
+            nextButton.className = 'btn';
+            nextButton.textContent = '下一组';
+            nextButton.onclick = nextGroup;
+            if (gameState.currentGroupIndex >= totalGroups - 1) {
+                nextButton.disabled = true;
+                nextButton.style.opacity = '0.5';
+                nextButton.style.cursor = 'not-allowed';
+            }
+            navContainer.appendChild(nextButton);
+
+            // 如果是最后一组，显示完成提示
+            if (gameState.currentGroupIndex >= totalGroups - 1) {
+                const completeDiv = document.createElement('div');
+                completeDiv.style.padding = '15px';
+                completeDiv.style.background = '#E8F5E8';
+                completeDiv.style.borderRadius = '8px';
+                completeDiv.style.color = '#2E7D32';
+                completeDiv.style.marginTop = '10px';
+                completeDiv.style.textAlign = 'center';
+                completeDiv.innerHTML = '✅ 所有牌已展示完毕，请点击"开始回忆"';
+                display.appendChild(completeDiv);
+            }
+        }
+
+        // 创建扑克牌元素
+        function createCardElement(card, index) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card';
+            cardDiv.innerHTML = `
+                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
+                    ${card.suit}
+                </div>
+                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
+                    ${card.value}
+                </div>
+            `;
+            
+            return cardDiv;
+        }
+
+        // 上一组
+        function prevGroup() {
+            if (gameState.currentGroupIndex > 0) {
+                gameState.currentGroupIndex--;
+                displayCards();
+            }
+        }
+
+        // 下一组
+        function nextGroup() {
+            const cardsPerGroup = 4;
+            const totalGroups = Math.ceil(gameState.selectedCardCount / cardsPerGroup);
+            
+            if (gameState.currentGroupIndex < totalGroups - 1) {
+                gameState.currentGroupIndex++;
+                displayCards();
+            }
+        }
+
+        // 开始回忆
+        function startRecall() {
+            gameState.selectedSlot = 0;
+            gameState.userAnswers = new Array(gameState.selectedCardCount).fill(null);
+            gameState.isSubmitted = false;
+            
+            document.getElementById('memory-page').classList.add('hidden');
+            document.getElementById('recall-page').classList.remove('hidden');
+            
+            createMemoryGrid();
+            createCardPool();
+        }
+
+        // 创建记忆网格
+        function createMemoryGrid() {
+            const grid = document.getElementById('memory-grid');
+            grid.innerHTML = '';
+            
+            // 根据牌数调整网格列数，最多8列
+            const columns = Math.min(8, gameState.selectedCardCount);
+            grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            
+            for (let i = 0; i < gameState.selectedCardCount; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'memory-slot';
+                slot.textContent = i + 1;
+                slot.onclick = () => selectSlot(i);
+                grid.appendChild(slot);
+            }
+        }
+
+        // 创建牌池
+        function createCardPool() {
+            const pool = document.getElementById('card-pool');
+            pool.innerHTML = '';
+            
+            // 创建洗牌后的牌池
+            const shuffledPool = [...gameState.shuffledCards];
+            for (let i = shuffledPool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
+            }
+            
+            shuffledPool.forEach((card, index) => {
+                const cardElement = createCardElement(card, index);
+                cardElement.onclick = () => selectCard(card, index);
+                pool.appendChild(cardElement);
+            });
+        }
+
+        // 选择空格
+        function selectSlot(index) {
+            if (gameState.isSubmitted) return;
+            
+            gameState.selectedSlot = index;
+            updateSlotSelection();
+        }
+
+        // 更新空格选择状态
+        function updateSlotSelection() {
+            const slots = document.querySelectorAll('.memory-slot');
+            slots.forEach((slot, index) => {
+                slot.style.borderColor = index === gameState.selectedSlot ? '#667eea' : '#ccc';
+                slot.style.borderWidth = index === gameState.selectedSlot ? '3px' : '2px';
+            });
+        }
+
+        // 选择扑克牌
+        function selectCard(card, poolIndex) {
+            if (gameState.isSubmitted) return;
+            
+            gameState.userAnswers[gameState.selectedSlot] = card;
+            
+            // 更新空格显示
+            const slots = document.querySelectorAll('.memory-slot');
+            const selectedSlot = slots[gameState.selectedSlot];
+            selectedSlot.innerHTML = `
+                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
+                    ${card.suit}
+                </div>
+                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
+                    ${card.value}
+                </div>
+            `;
+            selectedSlot.classList.add('filled');
+            
+            // 从牌池中移除已选择的牌
+            const poolCards = document.querySelectorAll('#card-pool .card');
+            poolCards[poolIndex].style.display = 'none';
+            
+            // 自动选择下一个空格
+            if (gameState.selectedSlot < gameState.selectedCardCount - 1) {
+                gameState.selectedSlot++;
+                updateSlotSelection();
+            }
+            
+            updateRecallProgress();
+        }
+
+        // 更新回忆进度
+        function updateRecallProgress() {
+            const filledCount = gameState.userAnswers.filter(card => card !== null).length;
+            document.getElementById('recall-progress').textContent = 
+                `已填写 ${filledCount} 张牌，剩余 ${gameState.selectedCardCount - filledCount} 张`;
+        }
+
+        // 提交答案
+        function submitAnswer() {
+            const filledCount = gameState.userAnswers.filter(card => card !== null).length;
+            if (filledCount < gameState.selectedCardCount) {
+                alert(`请先填写完所有${gameState.selectedCardCount}张牌！当前已填写 ${filledCount} 张`);
+                return;
+            }
+            
+            gameState.isSubmitted = true;
+            calculateScore();
+        }
+
+        // 计算分数
+        function calculateScore() {
+            let correctCount = 0;
+            const slots = document.querySelectorAll('.memory-slot');
+            
+            gameState.userAnswers.forEach((userCard, index) => {
+                const correctCard = gameState.shuffledCards[index];
+                const isCorrect = userCard && userCard.suit === correctCard.suit && userCard.value === correctCard.value;
+                
+                if (isCorrect) {
+                    correctCount++;
+                    slots[index].classList.add('correct');
+                } else {
+                    slots[index].classList.add('incorrect');
+                }
+            });
+            
+            showResult(correctCount);
+        }
+
+        // 显示结果
+        function showResult(correctCount) {
+            document.getElementById('recall-page').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('hidden');
+            
+            const scoreDisplay = document.getElementById('score-display');
+            const resultDetails = document.getElementById('result-details');
+            
+            const percentage = Math.round((correctCount / 52) * 100);
+            const scoreClass = percentage >= 80 ? 'correct' : percentage >= 60 ? '' : 'incorrect';
+            
+            scoreDisplay.className = `score ${scoreClass}`;
+            scoreDisplay.innerHTML = `
+                <h2>🎉 训练完成！</h2>
+                <p>共 ${gameState.selectedCardCount} 张牌，你正确记忆了 <strong>${correctCount}</strong> 张</p>
+                <p>正确率：<strong>${percentage}%</strong></p>
+            `;
+            
+            let performance = '';
+            if (percentage >= 90) performance = '🌟 记忆力超群！';
+            else if (percentage >= 80) performance = '👍 记忆力优秀！';
+            else if (percentage >= 60) performance = '😊 记忆力良好！';
+            else if (percentage >= 40) performance = '🤔 需要多加练习';
+            else performance = '💪 继续努力，熟能生巧！';
+            
+            resultDetails.innerHTML = `
+                <p style="font-size: 1.2em; margin: 20px 0;">${performance}</p>
+                <p>绿色表示正确，红色表示错误</p>
+            `;
+        }
+
+        // 重新开始回忆
+        function resetRecall() {
+            gameState.selectedSlot = 0;
+            gameState.userAnswers = new Array(gameState.selectedCardCount).fill(null);
+            gameState.isSubmitted = false;
+            
+            createMemoryGrid();
+            createCardPool();
+            updateRecallProgress();
+        }
+
+        // 返回首页
+        function backToStart() {
+            document.getElementById('memory-page').classList.add('hidden');
+            document.getElementById('recall-page').classList.add('hidden');
+            document.getElementById('result-page').classList.add('hidden');
+            document.getElementById('start-page').classList.remove('hidden');
+        }
+
+        // 键盘事件处理
+        function handleKeyPress(event) {
+            // 只在记忆页面响应键盘事件
+            if (document.getElementById('memory-page').classList.contains('hidden')) {
+                return;
+            }
+            
+            switch(event.key) {
+                case 'ArrowLeft':
+                    event.preventDefault();
+                    prevGroup();
+                    break;
+                case 'ArrowRight':
+                    event.preventDefault();
+                    nextGroup();
+                    break;
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 页面加载完成后的初始化
+        });
+
+        // 添加键盘事件监听器
+        document.addEventListener('keydown', handleKeyPress);
+    </script>
+</body>
+</html> 
