@@ -512,6 +512,11 @@
             slots.forEach((slot, index) => {
                 slot.style.borderColor = index === gameState.selectedSlot ? '#667eea' : '#ccc';
                 slot.style.borderWidth = index === gameState.selectedSlot ? '3px' : '2px';
+                
+                // 确保已填写的空格保持点击事件
+                if (slot.classList.contains('filled') && gameState.userAnswers[index]) {
+                    slot.onclick = () => returnCardToPool(index);
+                }
             });
         }
 
@@ -533,10 +538,18 @@
                 </div>
             `;
             selectedSlot.classList.add('filled');
+            selectedSlot.onclick = () => returnCardToPool(gameState.selectedSlot);
+            console.log('Added click handler to slot', gameState.selectedSlot);
             
             // 从牌池中移除已选择的牌
             const poolCards = document.querySelectorAll('#card-pool .card');
             poolCards[poolIndex].style.display = 'none';
+            
+            // 记录这张牌在池中的索引，用于后续恢复
+            if (!gameState.hiddenCardIndices) {
+                gameState.hiddenCardIndices = {};
+            }
+            gameState.hiddenCardIndices[`${card.suit}-${card.value}`] = poolIndex;
             
             // 自动选择下一个空格
             if (gameState.selectedSlot < gameState.selectedCardCount - 1) {
@@ -545,6 +558,61 @@
             }
             
             updateRecallProgress();
+        }
+
+        // 将牌返回到池中
+        function returnCardToPool(slotIndex) {
+            console.log('returnCardToPool called with slotIndex:', slotIndex);
+            if (gameState.isSubmitted) {
+                console.log('Game already submitted, returning');
+                return;
+            }
+            
+            const card = gameState.userAnswers[slotIndex];
+            if (!card) {
+                console.log('No card in slot', slotIndex);
+                return;
+            }
+            
+            console.log('Returning card:', card.suit, card.value);
+            
+            // 清空该空格
+            const slots = document.querySelectorAll('.memory-slot');
+            const slot = slots[slotIndex];
+            slot.innerHTML = slotIndex + 1;
+            slot.classList.remove('filled');
+            slot.onclick = () => selectSlot(slotIndex);
+            
+            // 将牌重新显示在牌池中
+            const poolCards = document.querySelectorAll('#card-pool .card');
+            console.log('Found', poolCards.length, 'pool cards');
+            
+            // 使用记录的索引来恢复牌
+            const cardKey = `${card.suit}-${card.value}`;
+            const hiddenIndex = gameState.hiddenCardIndices ? gameState.hiddenCardIndices[cardKey] : null;
+            
+            if (hiddenIndex !== null && hiddenIndex < poolCards.length) {
+                const poolCard = poolCards[hiddenIndex];
+                console.log('Restoring card at index', hiddenIndex);
+                poolCard.style.display = 'flex';
+                
+                // 从记录中移除
+                delete gameState.hiddenCardIndices[cardKey];
+            } else {
+                console.log('WARNING: Could not find card index for:', card.suit, card.value);
+                console.log('Hidden indices:', gameState.hiddenCardIndices);
+            }
+            
+            // 清空用户答案
+            gameState.userAnswers[slotIndex] = null;
+            
+            // 如果当前选中的空格被清空，重新选择该空格
+            if (gameState.selectedSlot === slotIndex) {
+                updateSlotSelection();
+            }
+            
+            updateRecallProgress();
+            console.log('returnCardToPool completed');
         }
 
         // 更新回忆进度
