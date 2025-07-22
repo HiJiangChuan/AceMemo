@@ -61,20 +61,22 @@
 
         .card {
             display: inline-block;
-            width: 60px;
-            height: 80px;
+            width: 40px;
+            height: 56px;
             border: 2px solid #333;
-            border-radius: 8px;
-            margin: 5px;
+            border-radius: 6px;
+            margin: 1px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 1.2em;
+            font-size: 0.8em;
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
             background: white;
+            min-width: 40px;
+            flex-shrink: 0;
         }
 
         .card:hover {
@@ -88,29 +90,32 @@
 
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 5px;
+            gap: 3px;
             margin: 20px 0;
             max-width: 100%;
+            padding: 5px;
         }
 
         .memory-grid {
             display: grid;
-            grid-template-columns: repeat(13, 1fr);
-            gap: 5px;
+            gap: 3px;
             margin: 20px 0;
+            max-width: 100%;
+            padding: 5px;
         }
 
         .memory-slot {
-            width: 60px;
-            height: 80px;
+            width: 40px;
+            height: 56px;
             border: 2px dashed #ccc;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             background: #f9f9f9;
+            min-width: 40px;
+            flex-shrink: 0;
         }
 
         .memory-slot.filled {
@@ -261,6 +266,7 @@
             <h1>📊 训练结果</h1>
             <div id="score-display" class="score"></div>
             <div id="result-details"></div>
+            <div id="result-cards-display" class="card-grid" style="margin: 30px 0;"></div>
             <button class="btn" onclick="backToStart()">重新开始</button>
         </div>
     </div>
@@ -284,13 +290,21 @@
 
         // 设置难度（选择牌数）
         function setDifficulty(cardCount) {
+            console.log('Setting difficulty to:', cardCount);
             gameState.selectedCardCount = cardCount;
             
             // 更新按钮状态
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            event.target.classList.add('selected');
+            
+            // 找到对应的按钮并添加选中状态
+            const buttons = document.querySelectorAll('.difficulty-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-cards') == cardCount) {
+                    btn.classList.add('selected');
+                }
+            });
             
             // 更新显示
             document.getElementById('selected-cards').textContent = `${cardCount}张牌`;
@@ -324,6 +338,13 @@
 
         // 开始训练
         function startTraining() {
+            console.log('Starting training with selectedCardCount:', gameState.selectedCardCount);
+            
+            if (!gameState.selectedCardCount || gameState.selectedCardCount === 0) {
+                alert('请先选择要训练的牌数！');
+                return;
+            }
+            
             initializeCards();
             shuffleCards();
             gameState.currentGroupIndex = 0;
@@ -450,6 +471,13 @@
 
         // 开始回忆
         function startRecall() {
+            console.log('Starting recall with selectedCardCount:', gameState.selectedCardCount);
+            
+            if (!gameState.selectedCardCount || gameState.selectedCardCount === 0) {
+                alert('请先选择要训练的牌数！');
+                return;
+            }
+            
             gameState.selectedSlot = 0;
             gameState.userAnswers = new Array(gameState.selectedCardCount).fill(null);
             gameState.isSubmitted = false;
@@ -463,13 +491,35 @@
 
         // 创建记忆网格
         function createMemoryGrid() {
+            console.log('Creating memory grid with selectedCardCount:', gameState.selectedCardCount);
+            
             const grid = document.getElementById('memory-grid');
             grid.innerHTML = '';
             
-            // 根据牌数调整网格列数，最多8列
-            const columns = Math.min(8, gameState.selectedCardCount);
-            grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            // 强制清除所有样式
+            grid.style = '';
             
+            // 根据牌数调整网格列数，让更多牌能在一行显示
+            let columns;
+            if (gameState.selectedCardCount <= 10) {
+                columns = gameState.selectedCardCount;
+            } else if (gameState.selectedCardCount <= 20) {
+                columns = 12;
+            } else if (gameState.selectedCardCount <= 30) {
+                columns = 15;
+            } else if (gameState.selectedCardCount <= 40) {
+                columns = 18;
+            } else {
+                columns = 20;
+            }
+            
+            console.log('Grid columns:', columns);
+            grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            grid.style.display = 'grid';
+            grid.style.gap = '5px';
+            grid.style.margin = '20px 0';
+            
+            console.log('Creating', gameState.selectedCardCount, 'slots');
             for (let i = 0; i < gameState.selectedCardCount; i++) {
                 const slot = document.createElement('div');
                 slot.className = 'memory-slot';
@@ -477,6 +527,11 @@
                 slot.onclick = () => selectSlot(i);
                 grid.appendChild(slot);
             }
+            
+            console.log('Memory grid created with', grid.children.length, 'slots');
+            
+            // 强制重新计算布局
+            grid.offsetHeight;
         }
 
         // 创建牌池
@@ -490,6 +545,22 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
             }
+            
+            // 根据牌数调整网格列数，让更多牌能在一行显示
+            let columns;
+            if (gameState.selectedCardCount <= 10) {
+                columns = gameState.selectedCardCount;
+            } else if (gameState.selectedCardCount <= 20) {
+                columns = 12;
+            } else if (gameState.selectedCardCount <= 30) {
+                columns = 15;
+            } else if (gameState.selectedCardCount <= 40) {
+                columns = 18;
+            } else {
+                columns = 20;
+            }
+            
+            pool.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
             
             shuffledPool.forEach((card, index) => {
                 const cardElement = createCardElement(card, index);
@@ -661,8 +732,9 @@
             
             const scoreDisplay = document.getElementById('score-display');
             const resultDetails = document.getElementById('result-details');
+            const resultCardsDisplay = document.getElementById('result-cards-display');
             
-            const percentage = Math.round((correctCount / 52) * 100);
+            const percentage = Math.round((correctCount / gameState.selectedCardCount) * 100);
             const scoreClass = percentage >= 80 ? 'correct' : percentage >= 60 ? '' : 'incorrect';
             
             scoreDisplay.className = `score ${scoreClass}`;
@@ -683,6 +755,76 @@
                 <p style="font-size: 1.2em; margin: 20px 0;">${performance}</p>
                 <p>绿色表示正确，红色表示错误</p>
             `;
+            
+            // 显示所有牌的完整结果
+            displayResultCards(resultCardsDisplay);
+        }
+
+        // 显示结果卡片
+        function displayResultCards(container) {
+            container.innerHTML = '';
+            
+            // 根据牌数调整网格列数，让更多牌能在一行显示
+            let columns;
+            if (gameState.selectedCardCount <= 10) {
+                columns = gameState.selectedCardCount;
+            } else if (gameState.selectedCardCount <= 20) {
+                columns = 12;
+            } else if (gameState.selectedCardCount <= 30) {
+                columns = 15;
+            } else if (gameState.selectedCardCount <= 40) {
+                columns = 18;
+            } else {
+                columns = 20;
+            }
+            
+            container.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            
+            gameState.shuffledCards.forEach((correctCard, index) => {
+                const userCard = gameState.userAnswers[index];
+                const isCorrect = userCard && userCard.suit === correctCard.suit && userCard.value === correctCard.value;
+                
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                cardDiv.style.border = isCorrect ? '3px solid #4CAF50' : '3px solid #f44336';
+                cardDiv.style.background = isCorrect ? '#E8F5E8' : '#FFEBEE';
+                
+                // 显示正确的牌
+                cardDiv.innerHTML = `
+                    <div style="color: ${correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black'}; font-size: 1em; font-weight: bold;">
+                        ${correctCard.suit}${correctCard.value}
+                    </div>
+                    <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                        ${index + 1}
+                    </div>
+                `;
+                
+                // 如果用户答错了，在牌上方显示错误标记
+                if (!isCorrect && userCard) {
+                    cardDiv.innerHTML = `
+                        <div style="font-size: 0.5em; color: #f44336; margin-bottom: 2px;">✗</div>
+                        <div style="color: ${correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black'}; font-size: 1em; font-weight: bold;">
+                            ${correctCard.suit}${correctCard.value}
+                        </div>
+                        <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                            ${index + 1}
+                        </div>
+                    `;
+                } else if (isCorrect) {
+                    // 如果答对了，在牌上方显示正确标记
+                    cardDiv.innerHTML = `
+                        <div style="font-size: 0.5em; color: #4CAF50; margin-bottom: 2px;">✓</div>
+                        <div style="color: ${correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black'}; font-size: 1em; font-weight: bold;">
+                            ${correctCard.suit}${correctCard.value}
+                        </div>
+                        <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                            ${index + 1}
+                        </div>
+                    `;
+                }
+                
+                container.appendChild(cardDiv);
+            });
         }
 
         // 重新开始回忆
@@ -698,6 +840,7 @@
 
         // 返回首页
         function backToStart() {
+            console.log('Back to start, current selectedCardCount:', gameState.selectedCardCount);
             document.getElementById('memory-page').classList.add('hidden');
             document.getElementById('recall-page').classList.add('hidden');
             document.getElementById('result-page').classList.add('hidden');
