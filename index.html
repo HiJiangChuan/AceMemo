@@ -213,7 +213,7 @@
                     <button class="btn difficulty-btn" onclick="setDifficulty(10)" data-cards="10">10张牌</button>
                     <button class="btn difficulty-btn" onclick="setDifficulty(20)" data-cards="20">20张牌</button>
                     <button class="btn difficulty-btn" onclick="setDifficulty(30)" data-cards="30">30张牌</button>
-                    <button class="btn difficulty-btn" onclick="setDifficulty(52)" data-cards="52">52张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(54)" data-cards="54">54张牌</button>
                 </div>
                 <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
                     当前选择：<span id="selected-cards">请选择牌数</span>
@@ -321,6 +321,9 @@
                     gameState.cards.push({ suit, value });
                 }
             }
+            // 添加大小王
+            gameState.cards.push({ suit: '🃏', value: '小王' });
+            gameState.cards.push({ suit: '🃏', value: '大王' });
         }
 
         // Fisher-Yates 洗牌算法
@@ -438,14 +441,27 @@
         function createCardElement(card, index) {
             const cardDiv = document.createElement('div');
             cardDiv.className = 'card';
-            cardDiv.innerHTML = `
-                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
-                    ${card.suit}
-                </div>
-                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
-                    ${card.value}
-                </div>
-            `;
+            
+            // 大小王的特殊显示
+            if (card.suit === '🃏') {
+                cardDiv.innerHTML = `
+                    <div style="color: #333; font-size: 1.2em;">
+                        ${card.suit}
+                    </div>
+                    <div style="color: #333; font-size: 0.8em;">
+                        ${card.value}
+                    </div>
+                `;
+            } else {
+                cardDiv.innerHTML = `
+                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
+                        ${card.suit}
+                    </div>
+                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
+                        ${card.value}
+                    </div>
+                `;
+            }
             
             return cardDiv;
         }
@@ -499,18 +515,18 @@
             // 强制清除所有样式
             grid.style = '';
             
-            // 根据牌数调整网格列数，让更多牌能在一行显示
+            // 根据牌数调整网格列数，改为4行布局
             let columns;
             if (gameState.selectedCardCount <= 10) {
-                columns = gameState.selectedCardCount;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else if (gameState.selectedCardCount <= 20) {
-                columns = 12;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else if (gameState.selectedCardCount <= 30) {
-                columns = 15;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else if (gameState.selectedCardCount <= 40) {
-                columns = 18;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else {
-                columns = 20;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             }
             
             console.log('Grid columns:', columns);
@@ -546,18 +562,18 @@
                 [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
             }
             
-            // 根据牌数调整网格列数，让更多牌能在一行显示
+            // 根据牌数调整网格列数，改为4行布局
             let columns;
             if (gameState.selectedCardCount <= 10) {
-                columns = gameState.selectedCardCount;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else if (gameState.selectedCardCount <= 20) {
-                columns = 12;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else if (gameState.selectedCardCount <= 30) {
-                columns = 15;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else if (gameState.selectedCardCount <= 40) {
-                columns = 18;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             } else {
-                columns = 20;
+                columns = Math.ceil(gameState.selectedCardCount / 4);
             }
             
             pool.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
@@ -600,14 +616,27 @@
             // 更新空格显示
             const slots = document.querySelectorAll('.memory-slot');
             const selectedSlot = slots[gameState.selectedSlot];
-            selectedSlot.innerHTML = `
-                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
-                    ${card.suit}
-                </div>
-                <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
-                    ${card.value}
-                </div>
-            `;
+            
+            // 大小王的特殊显示
+            if (card.suit === '🃏') {
+                selectedSlot.innerHTML = `
+                    <div style="color: #333; font-size: 0.8em;">
+                        ${card.suit}
+                    </div>
+                    <div style="color: #333; font-size: 0.6em;">
+                        ${card.value}
+                    </div>
+                `;
+            } else {
+                selectedSlot.innerHTML = `
+                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
+                        ${card.suit}
+                    </div>
+                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
+                        ${card.value}
+                    </div>
+                `;
+            }
             selectedSlot.classList.add('filled');
             selectedSlot.onclick = () => returnCardToPool(gameState.selectedSlot);
             console.log('Added click handler to slot', gameState.selectedSlot);
@@ -789,9 +818,17 @@
                 cardDiv.style.border = isCorrect ? '3px solid #4CAF50' : '3px solid #f44336';
                 cardDiv.style.background = isCorrect ? '#E8F5E8' : '#FFEBEE';
                 
+                // 大小王的特殊显示
+                let cardColor;
+                if (correctCard.suit === '🃏') {
+                    cardColor = '#333';
+                } else {
+                    cardColor = correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black';
+                }
+                
                 // 显示正确的牌
                 cardDiv.innerHTML = `
-                    <div style="color: ${correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black'}; font-size: 1em; font-weight: bold;">
+                    <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
                         ${correctCard.suit}${correctCard.value}
                     </div>
                     <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
@@ -803,7 +840,7 @@
                 if (!isCorrect && userCard) {
                     cardDiv.innerHTML = `
                         <div style="font-size: 0.5em; color: #f44336; margin-bottom: 2px;">✗</div>
-                        <div style="color: ${correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black'}; font-size: 1em; font-weight: bold;">
+                        <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
                             ${correctCard.suit}${correctCard.value}
                         </div>
                         <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
@@ -814,7 +851,7 @@
                     // 如果答对了，在牌上方显示正确标记
                     cardDiv.innerHTML = `
                         <div style="font-size: 0.5em; color: #4CAF50; margin-bottom: 2px;">✓</div>
-                        <div style="color: ${correctCard.suit === '♥' || correctCard.suit === '♦' ? 'red' : 'black'}; font-size: 1em; font-weight: bold;">
+                        <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
                             ${correctCard.suit}${correctCard.value}
                         </div>
                         <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
