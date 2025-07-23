@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>扑克牌记忆训练</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <style>
         * {
             margin: 0;
@@ -61,8 +62,8 @@
 
         .card {
             display: inline-block;
-            width: 40px;
-            height: 56px;
+            width: 80px;
+            height: 112px;
             border: 2px solid #333;
             border-radius: 6px;
             margin: 1px;
@@ -70,12 +71,12 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 0.8em;
+            font-size: 1.6em;
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
             background: white;
-            min-width: 40px;
+            min-width: 80px;
             flex-shrink: 0;
         }
 
@@ -105,8 +106,8 @@
         }
 
         .memory-slot {
-            width: 40px;
-            height: 56px;
+            width: 80px;
+            height: 112px;
             border: 2px dashed #ccc;
             border-radius: 6px;
             display: flex;
@@ -114,7 +115,7 @@
             align-items: center;
             cursor: pointer;
             background: #f9f9f9;
-            min-width: 40px;
+            min-width: 80px;
             flex-shrink: 0;
         }
 
@@ -210,9 +211,10 @@
             <div style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
                 <h3 style="margin-bottom: 15px; color: #333;">选择训练难度：</h3>
                 <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn difficulty-btn" onclick="setDifficulty(10)" data-cards="10">10张牌</button>
-                    <button class="btn difficulty-btn" onclick="setDifficulty(20)" data-cards="20">20张牌</button>
-                    <button class="btn difficulty-btn" onclick="setDifficulty(30)" data-cards="30">30张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(8)" data-cards="8">8张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(16)" data-cards="16">16张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(32)" data-cards="32">32张牌</button>
+                    <button class="btn difficulty-btn" onclick="setDifficulty(40)" data-cards="40">40张牌</button>
                     <button class="btn difficulty-btn" onclick="setDifficulty(54)" data-cards="54">54张牌</button>
                 </div>
                 <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
@@ -365,7 +367,7 @@
             const display = document.getElementById('cards-display');
             display.innerHTML = '';
 
-            const cardsPerGroup = 4;
+            const cardsPerGroup = 8;
             const totalGroups = Math.ceil(gameState.selectedCardCount / cardsPerGroup);
             const startIndex = gameState.currentGroupIndex * cardsPerGroup;
             const endIndex = Math.min(startIndex + cardsPerGroup, gameState.selectedCardCount);
@@ -476,7 +478,7 @@
 
         // 下一组
         function nextGroup() {
-            const cardsPerGroup = 4;
+            const cardsPerGroup = 8;
             const totalGroups = Math.ceil(gameState.selectedCardCount / cardsPerGroup);
             
             if (gameState.currentGroupIndex < totalGroups - 1) {
@@ -515,19 +517,8 @@
             // 强制清除所有样式
             grid.style = '';
             
-            // 根据牌数调整网格列数，改为4行布局
-            let columns;
-            if (gameState.selectedCardCount <= 10) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else if (gameState.selectedCardCount <= 20) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else if (gameState.selectedCardCount <= 30) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else if (gameState.selectedCardCount <= 40) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            }
+            // 固定为8列布局，一排8个
+            const columns = 8;
             
             console.log('Grid columns:', columns);
             grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
@@ -562,19 +553,8 @@
                 [shuffledPool[i], shuffledPool[j]] = [shuffledPool[j], shuffledPool[i]];
             }
             
-            // 根据牌数调整网格列数，改为4行布局
-            let columns;
-            if (gameState.selectedCardCount <= 10) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else if (gameState.selectedCardCount <= 20) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else if (gameState.selectedCardCount <= 30) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else if (gameState.selectedCardCount <= 40) {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            } else {
-                columns = Math.ceil(gameState.selectedCardCount / 4);
-            }
+            // 固定为8列布局，一排8个
+            const columns = 8;
             
             pool.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
             
