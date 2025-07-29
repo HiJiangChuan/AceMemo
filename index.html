@@ -120,8 +120,11 @@
         }
 
         .memory-slot.filled {
-            border-style: solid;
+            border: 2px solid #333;
             background: white;
+            flex-direction: column;
+            font-size: 1.6em;
+            font-weight: bold;
         }
 
         .memory-slot.correct {
@@ -577,8 +580,15 @@
         function updateSlotSelection() {
             const slots = document.querySelectorAll('.memory-slot');
             slots.forEach((slot, index) => {
-                slot.style.borderColor = index === gameState.selectedSlot ? '#667eea' : '#ccc';
-                slot.style.borderWidth = index === gameState.selectedSlot ? '3px' : '2px';
+                if (slot.classList.contains('filled')) {
+                    // 已填写的空格保持深黑色边框
+                    slot.style.borderColor = '#333';
+                    slot.style.borderWidth = '2px';
+                } else {
+                    // 未填写的空格根据选中状态设置边框
+                    slot.style.borderColor = index === gameState.selectedSlot ? '#667eea' : '#ccc';
+                    slot.style.borderWidth = index === gameState.selectedSlot ? '3px' : '2px';
+                }
                 
                 // 确保已填写的空格保持点击事件
                 if (slot.classList.contains('filled') && gameState.userAnswers[index]) {
@@ -600,19 +610,19 @@
             // 大小王的特殊显示
             if (card.suit === '🃏') {
                 selectedSlot.innerHTML = `
-                    <div style="color: #333; font-size: 0.8em;">
+                    <div style="color: #333; font-size: 1.2em;">
                         ${card.suit}
                     </div>
-                    <div style="color: #333; font-size: 0.6em;">
+                    <div style="color: #333; font-size: 0.8em;">
                         ${card.value}
                     </div>
                 `;
             } else {
                 selectedSlot.innerHTML = `
-                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
+                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
                         ${card.suit}
                     </div>
-                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}; font-size: 0.8em;">
+                    <div style="color: ${card.suit === '♥' || card.suit === '♦' ? 'red' : 'black'}">
                         ${card.value}
                     </div>
                 `;
