@@ -783,19 +783,8 @@
         function displayResultCards(container) {
             container.innerHTML = '';
             
-            // 根据牌数调整网格列数，让更多牌能在一行显示
-            let columns;
-            if (gameState.selectedCardCount <= 10) {
-                columns = gameState.selectedCardCount;
-            } else if (gameState.selectedCardCount <= 20) {
-                columns = 12;
-            } else if (gameState.selectedCardCount <= 30) {
-                columns = 15;
-            } else if (gameState.selectedCardCount <= 40) {
-                columns = 18;
-            } else {
-                columns = 20;
-            }
+            // 固定为8列，让16张牌显示为两行，每行8张，居中摆放
+            const columns = 8;
             
             container.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
             
@@ -817,37 +806,87 @@
                 }
                 
                 // 显示正确的牌
-                cardDiv.innerHTML = `
-                    <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
-                        ${correctCard.suit}${correctCard.value}
-                    </div>
-                    <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
-                        ${index + 1}
-                    </div>
-                `;
+                if (correctCard.suit === '🃏') {
+                    // 大小王的特殊显示：符号和文字垂直排列
+                    cardDiv.innerHTML = `
+                        <div style="color: ${cardColor}; font-size: 1.2em; font-weight: bold;">
+                            ${correctCard.suit}
+                        </div>
+                        <div style="color: ${cardColor}; font-size: 0.8em; font-weight: bold;">
+                            ${correctCard.value}
+                        </div>
+                        <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                            ${index + 1}
+                        </div>
+                    `;
+                } else {
+                    // 普通扑克牌的显示
+                    cardDiv.innerHTML = `
+                        <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
+                            ${correctCard.suit}${correctCard.value}
+                        </div>
+                        <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                            ${index + 1}
+                        </div>
+                    `;
+                }
                 
                 // 如果用户答错了，在牌上方显示错误标记
                 if (!isCorrect && userCard) {
-                    cardDiv.innerHTML = `
-                        <div style="font-size: 0.5em; color: #f44336; margin-bottom: 2px;">✗</div>
-                        <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
-                            ${correctCard.suit}${correctCard.value}
-                        </div>
-                        <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
-                            ${index + 1}
-                        </div>
-                    `;
+                    if (correctCard.suit === '🃏') {
+                        // 大小王的错误标记显示
+                        cardDiv.innerHTML = `
+                            <div style="font-size: 0.5em; color: #f44336; margin-bottom: 2px;">✗</div>
+                            <div style="color: ${cardColor}; font-size: 1.2em; font-weight: bold;">
+                                ${correctCard.suit}
+                            </div>
+                            <div style="color: ${cardColor}; font-size: 0.8em; font-weight: bold;">
+                                ${correctCard.value}
+                            </div>
+                            <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                                ${index + 1}
+                            </div>
+                        `;
+                    } else {
+                        // 普通扑克牌的错误标记显示
+                        cardDiv.innerHTML = `
+                            <div style="font-size: 0.5em; color: #f44336; margin-bottom: 2px;">✗</div>
+                            <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
+                                ${correctCard.suit}${correctCard.value}
+                            </div>
+                            <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                                ${index + 1}
+                            </div>
+                        `;
+                    }
                 } else if (isCorrect) {
                     // 如果答对了，在牌上方显示正确标记
-                    cardDiv.innerHTML = `
-                        <div style="font-size: 0.5em; color: #4CAF50; margin-bottom: 2px;">✓</div>
-                        <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
-                            ${correctCard.suit}${correctCard.value}
-                        </div>
-                        <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
-                            ${index + 1}
-                        </div>
-                    `;
+                    if (correctCard.suit === '🃏') {
+                        // 大小王的正确标记显示
+                        cardDiv.innerHTML = `
+                            <div style="font-size: 0.5em; color: #4CAF50; margin-bottom: 2px;">✓</div>
+                            <div style="color: ${cardColor}; font-size: 1.2em; font-weight: bold;">
+                                ${correctCard.suit}
+                            </div>
+                            <div style="color: ${cardColor}; font-size: 0.8em; font-weight: bold;">
+                                ${correctCard.value}
+                            </div>
+                            <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                                ${index + 1}
+                            </div>
+                        `;
+                    } else {
+                        // 普通扑克牌的正确标记显示
+                        cardDiv.innerHTML = `
+                            <div style="font-size: 0.5em; color: #4CAF50; margin-bottom: 2px;">✓</div>
+                            <div style="color: ${cardColor}; font-size: 1em; font-weight: bold;">
+                                ${correctCard.suit}${correctCard.value}
+                            </div>
+                            <div style="font-size: 0.6em; margin-top: 3px; color: #666;">
+                                ${index + 1}
+                            </div>
+                        `;
+                    }
                 }
                 
                 container.appendChild(cardDiv);
